@@ -1,12 +1,3 @@
-# 使用更轻量的 JRE 基础镜像替代 JDK 镜像，减少镜像体积
-FROM openjdk:8-jre-alpine
-WORKDIR /app
-
-# 安装可能需要的额外工具
-# alpine 使用 apk 包管理器，而非 apt-get
-RUN apk update && apk add --no-cache \
-    git
-
 # 使用多阶段构建
 # 阶段1：构建项目
 FROM maven:3.6.3-jdk-8-alpine AS builder
