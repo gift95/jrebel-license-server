@@ -1,6 +1,6 @@
 # 使用多阶段构建
 # 阶段1：构建项目
-FROM maven:3.6.3-jdk-8-alpine AS builder
+FROM maven:3.8.6-jdk-8-alpine  AS builder
 WORKDIR /build
 
 # 先复制pom.xml并下载依赖（利用Docker缓存）
