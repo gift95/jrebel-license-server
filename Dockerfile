@@ -1,6 +1,6 @@
 # 使用多阶段构建
 # 阶段1：构建项目
-FROM maven:3.8.6-jdk-8-alpine  AS builder
+FROM maven:3.8.6-jdk-8  AS builder
 WORKDIR /build
 
 # 先复制pom.xml并下载依赖（利用Docker缓存）
@@ -14,9 +14,6 @@ RUN mvn clean package -DskipTests -e
 # 阶段2：创建运行环境
 FROM openjdk:8-jre-alpine
 WORKDIR /app
-
-# 安装可能需要的额外工具
-RUN apk update && apk add --no-cache \n    git
 
 # 从构建阶段复制JAR文件
 COPY --from=builder /build/target/JrebelLicenseServer.jar JrebelLicenseServer.jar
