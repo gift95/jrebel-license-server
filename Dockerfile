@@ -7,26 +7,28 @@ WORKDIR /app
 RUN apk update && apk add --no-cache \
     git
 
-# 先复制pom.xml尝试缓存依赖
+# 使用多阶段构建
+# 阶段1：构建项目
+FROM maven:3.6.3-jdk-8-alpine AS builder
+WORKDIR /build
+
+# 先复制pom.xml并下载依赖（利用Docker缓存）
 COPY pom.xml .
-# 使用更可靠的依赖下载方式
 RUN mvn dependency:resolve-plugins dependency:resolve -e
 
-
-# 添加维护者信息
-#LABEL maintainer="github.com/wyx176"
-
-# 复制所有项目文件
+# 复制所有项目文件并构建
 COPY . .
-
-# 构建项目
 RUN mvn clean package -DskipTests -e
 
-# 创建应用目录
+# 阶段2：创建运行环境
+FROM openjdk:8-jre-alpine
 WORKDIR /app
 
-# 由于不存在 build 阶段，直接从当前上下文复制构建产物
-COPY target/JrebelLicenseServer.jar JrebelLicenseServer.jar
+# 安装可能需要的额外工具
+RUN apk update && apk add --no-cache \n    git
+
+# 从构建阶段复制JAR文件
+COPY --from=builder /build/target/JrebelLicenseServer.jar JrebelLicenseServer.jar
 
 # 设置时区
 ENV TZ=Asia/Shanghai
@@ -38,5 +40,5 @@ ENV PORT=9009
 # 暴露端口
 EXPOSE 9009
 
-# 修正 JAR 包名称与实际一致
+# 运行应用
 CMD ["java", "-jar", "JrebelLicenseServer.jar", "-p", "${PORT}"]
